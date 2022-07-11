@@ -14,7 +14,8 @@ const container =  document.createElement( 'div' );
 document.body.appendChild( container );
 
 let camera, scene, renderer, controls;
-// let controllers;
+// const controllers =[];
+let vrControllers;
 
 let clock;
 
@@ -120,7 +121,7 @@ function setupXR(){
     renderer.xr.enabled = true;
     document.body.appendChild( VRButton.createButton( renderer ) );
 
-    this.controllers = buildController();
+    vrControllers = buildController();
 }
 
 function buildController(){
@@ -134,7 +135,7 @@ function buildController(){
     line.name  = 'line';
     line.scale.z  = 0 ;
 
-    const  controllers =[];
+    const controllers =[];
 
     for(let i=0; i<=1; i++){
         const controller = renderer.xr.getController(i);
@@ -179,9 +180,9 @@ function animate() {
 
 function render() {
     
-    if (this.controllers ){
+    if (vrControllers ){
         // const self = this;
-        this.controllers.forEach( ( controller) => { 
+        vrControllers.forEach( ( controller) => { 
             handleController( controller ) 
         });
     }
