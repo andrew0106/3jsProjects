@@ -13,7 +13,7 @@ stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
 const container =  document.createElement( 'div' );
 document.body.appendChild( container );
 
-let camera, scene, renderer;
+let camera, scene, renderer, controls;
 
 let clock;
 
