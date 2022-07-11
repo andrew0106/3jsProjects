@@ -1,0 +1,25 @@
+{
+  "name": "test_vr_project",
+  "version": "1.0.0",
+  "description": "",
+  "source": "development/index.html",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "parcel -p 2100",
+    "build": "parcel build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/andrew0106/3jsProjects.git"
+  },
+  "author": "Andrew Chang",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/andrew0106/3jsProjects/issues"
+  },
+  "homepage": "https://github.com/andrew0106/3jsProjects#readme",
+  "dependencies": {
+    "parcel": "^2.6.2",
+    "three": "^0.142.0"
+  }
+}
