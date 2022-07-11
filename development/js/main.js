@@ -3,6 +3,7 @@ import * as THREE from "three";
 import Stats from 'three/examples/jsm/libs/stats.module';
 
 import { VRButton } from 'three/examples/jsm/webxr/VRButton.js';
+// import { VRButton } from './modules/VRButton.js';
 import { XRControllerModelFactory } from 'three/examples/jsm/webxr/XRControllerModelFactory.js';
 import { BoxLineGeometry } from 'three/examples/jsm/geometries/BoxLineGeometry.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
@@ -58,7 +59,7 @@ async function init() {
     controls.update();
     
     // stats = new Stats();
-    // container.appendChild( stats.dom );
+    container.appendChild( stats.dom );
     
     initScene();
     setupXR();
@@ -110,6 +111,7 @@ function initScene(){
 }
 
 function setupXR(){
+
     renderer.xr.enabled = true;
     document.body.appendChild( VRButton.createButton( renderer ) );
 }
@@ -123,8 +125,9 @@ function onWindowResize() {
 }
 
 function animate() {
-    
-    requestAnimationFrame( animate );
+
+    renderer.setAnimationLoop( render );
+    // requestAnimationFrame( animate );
     render();
     stats.update();
 
