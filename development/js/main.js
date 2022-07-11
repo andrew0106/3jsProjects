@@ -110,7 +110,7 @@ function initScene(){
 }
 
 function setupXR(){
-    renderer.xr.enable = true;
+    renderer.xr.enabled = true;
     document.body.appendChild( VRButton.createButton( renderer ) );
 }
 
