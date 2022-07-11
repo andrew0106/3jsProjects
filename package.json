@@ -17,7 +17,6 @@
   "bugs": {
     "url": "https://github.com/andrew0106/3jsProjects/issues"
   },
-  "homepage": "https://github.com/andrew0106/3jsProjects#readme",
   "dependencies": {
     "parcel": "^2.6.2",
     "three": "^0.142.0"
