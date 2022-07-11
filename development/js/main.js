@@ -3,7 +3,6 @@ import * as THREE from "three";
 import Stats from 'three/examples/jsm/libs/stats.module';
 
 import { VRButton } from 'three/examples/jsm/webxr/VRButton.js';
-// import { VRButton } from './modules/VRButton.js';
 import { XRControllerModelFactory } from 'three/examples/jsm/webxr/XRControllerModelFactory.js';
 import { BoxLineGeometry } from 'three/examples/jsm/geometries/BoxLineGeometry.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
@@ -15,8 +14,14 @@ const container =  document.createElement( 'div' );
 document.body.appendChild( container );
 
 let camera, scene, renderer, controls;
+// let controllers;
 
 let clock;
+
+var raycaster = new THREE.Raycaster();
+var workingMatrix = new THREE.Matrix4();
+var woringVextor = new THREE.Vector3();
+
 
 function InitializeSceneAssets(callback) {
     
@@ -114,6 +119,42 @@ function setupXR(){
 
     renderer.xr.enabled = true;
     document.body.appendChild( VRButton.createButton( renderer ) );
+
+    this.controllers = buildController();
+}
+
+function buildController(){
+    const controllerModelFactory = new XRControllerModelFactory();
+
+    const geometry = new THREE.BufferGeometry().setFromPoints([
+        new THREE.Vector3(0,0,0),
+        new THREE.Vector3(0,0,-1)
+    ]);
+    const line = new THREE.Line(geometry);
+    line.name  = 'line';
+    line.scale.z  = 0 ;
+
+    const  controllers =[];
+
+    for(let i=0; i<=1; i++){
+        const controller = renderer.xr.getController(i);
+        controller.add( line.clone() );
+        controller.userData.selectPressed = false;
+        scene.add(controller);
+
+        controllers.push(controller);
+
+        const grip = renderer.xr.getControllerGrip(i);
+        grip.add(controllerModelFactory.createControllerModel(grip));
+        scene.add(grip);
+
+    }
+
+    return controllers
+}
+
+function handleController(){
+
 }
 
 function onWindowResize() {
@@ -127,13 +168,24 @@ function onWindowResize() {
 function animate() {
 
     renderer.setAnimationLoop( render );
+
+    // in vr cannot use this 
     // requestAnimationFrame( animate );
+
     render();
     stats.update();
 
 }
 
 function render() {
+    
+    if (this.controllers ){
+        // const self = this;
+        this.controllers.forEach( ( controller) => { 
+            handleController( controller ) 
+        });
+    }
+    
 
     renderer.render( scene, camera );
 
