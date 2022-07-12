@@ -19,6 +19,9 @@ let vrControllers;
 
 let clock;
 
+var hightlight;
+let room ;
+
 var raycaster = new THREE.Raycaster();
 var workingMatrix = new THREE.Matrix4();
 var woringVextor = new THREE.Vector3();
@@ -65,6 +68,7 @@ async function init() {
     controls.update();
     
     // stats = new Stats();
+    // shows stats fps panel
     container.appendChild( stats.dom );
     
     initScene();
@@ -81,13 +85,15 @@ function random( min, max ){
     return Math.random() * (max-min) + min;
 }
 
+
+
 function initScene(){
 
     //metric scale , radius 0.08 = 8 cm / 1unit = 1 meter
 
     let radius = 0.08;
     
-    let room = new THREE.LineSegments(
+    room = new THREE.LineSegments(
         new BoxLineGeometry(6,6,6,10,10,10),
         new THREE.LineBasicMaterial({color: 0x808080 })
     );
@@ -113,6 +119,12 @@ function initScene(){
         room.add(object);
     }
 
+    hightlight = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({
+        color:  0xFFFFFF,
+        side: THREE.BackSide
+    }));
+    hightlight.scale.set(1.2, 1.2, 1.2);
+    scene.add(hightlight);
 
 }
 
@@ -122,7 +134,28 @@ function setupXR(){
     document.body.appendChild( VRButton.createButton( renderer ) );
 
     vrControllers = buildController();
+
+    function onSelectStart(){
+        this.children[0].scale.z = 10 ;
+        this.userData.selectPressed  = true;
+        // self.hightlight.visivle = false;
+    
+    }
+    
+    function onSelectEnd(){
+        this.children[0].scale.z = 0;
+        this.userData.selectPressed  = false;
+        hightlight.visible = false;
+    
+    }
+
+    vrControllers.forEach((controller)=>{
+        controller.addEventListener('selectstart', onSelectStart);
+        controller.addEventListener('selectend', onSelectEnd);
+    });
+    
 }
+
 
 function buildController(){
     const controllerModelFactory = new XRControllerModelFactory();
@@ -154,7 +187,26 @@ function buildController(){
     return controllers
 }
 
-function handleController(){
+function handleController(controller){
+    if(controller.userData.selectPressed){
+        controller.children[0].scale.z = 10;
+        
+        workingMatrix.identity().extractRotation(controller.matrixWorld);
+
+        raycaster.ray.origin.setFromMatrixPosition(controller.matrixWorld);
+        raycaster.ray.direction.set( 0, 0, -1).applyMatrix4(workingMatrix);
+
+        const intersects = raycaster.intersectObjects(room.children);
+
+        if(intersects.length>0){
+            intersects[0].object.add(hightlight);
+            hightlight.visible = true;
+            controller.children[0].scale.z = intersects[0].distance;
+        }else{
+            hightlight.visible = false;
+        }
+
+    }
 
 }
 
