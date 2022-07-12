@@ -6,6 +6,7 @@ import { VRButton } from 'three/examples/jsm/webxr/VRButton.js';
 import { XRControllerModelFactory } from 'three/examples/jsm/webxr/XRControllerModelFactory.js';
 import { BoxLineGeometry } from 'three/examples/jsm/geometries/BoxLineGeometry.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 const stats = new Stats();
 stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
@@ -15,11 +16,11 @@ document.body.appendChild( container );
 
 let camera, scene, renderer, controls;
 // const controllers =[];
-let vrControllers;
+let controller;
 
 let clock;
 
-var hightlight;
+var highlight;
 let room ;
 
 var raycaster = new THREE.Raycaster();
@@ -119,12 +120,12 @@ function initScene(){
         room.add(object);
     }
 
-    hightlight = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({
+    highlight = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({
         color:  0xFFFFFF,
         side: THREE.BackSide
     }));
-    hightlight.scale.set(1.2, 1.2, 1.2);
-    scene.add(hightlight);
+    highlight.scale.set(1.2, 1.2, 1.2);
+    scene.add(highlight);
 
 }
 
@@ -132,64 +133,77 @@ function setupXR(){
 
     renderer.xr.enabled = true;
     document.body.appendChild( VRButton.createButton( renderer ) );
-
-    vrControllers = buildController();
-
+``
     function onSelectStart(){
-        this.children[0].scale.z = 10 ;
+
         this.userData.selectPressed  = true;
-        // self.hightlight.visivle = false;
+        if(spotlight)spotlight.visible = true;
     
     }
     
     function onSelectEnd(){
-        this.children[0].scale.z = 0;
+
+        highlight.visible = false;
         this.userData.selectPressed  = false;
-        hightlight.visible = false;
+        if(spotlight)spotlight.visible = false;
     
     }
 
-    vrControllers.forEach((controller)=>{
-        controller.addEventListener('selectstart', onSelectStart);
-        controller.addEventListener('selectend', onSelectEnd);
-    });
-    
+    controller = renderer.xr.getController(0);
+    controller.addEventListener('selectstart', onSelectStart);
+    controller.addEventListener('selectend', onSelectEnd);
+    controller.addEventListener('connected', function ( event ) {
+
+        buildController.call(self, event.data );
+
+    } );
+
+    controller.addEventListener('disconnected', function () {
+
+        while(children.length>0)remove( children[ 0 ] );
+            controller = null;
+    } );
+
+    scene.add(controller);
+    scene.add(highlight);
+
 }
 
 
-function buildController(){
-    const controllerModelFactory = new XRControllerModelFactory();
+function buildController(data, controller){
+    let geometry, material, loader;
 
-    const geometry = new THREE.BufferGeometry().setFromPoints([
-        new THREE.Vector3(0,0,0),
-        new THREE.Vector3(0,0,-1)
-    ]);
-    const line = new THREE.Line(geometry);
-    line.name  = 'line';
-    line.scale.z  = 0 ;
+    switch(data.targetRayMode){
 
-    const controllers =[];
+        case 'tracked-pointer':
+            //code here
+            let loader = new GLTFLoader().setPath('./staticAsset');
 
-    for(let i=0; i<=1; i++){
-        const controller = renderer.xr.getController(i);
-        controller.add( line.clone() );
-        controller.userData.selectPressed = false;
-        scene.add(controller);
+            loader.load('flash-light.glb',
+            ( gltf ) => {
+                controller.add(gltf.scene);
+            },
+            null,
+            (error) => {
+                console.error('An error');
+            }
+            );
+            
+            break;
 
-        controllers.push(controller);
-
-        const grip = renderer.xr.getControllerGrip(i);
-        grip.add(controllerModelFactory.createControllerModel(grip));
-        scene.add(grip);
+        case 'gaze':
+            
+            geometry = new THREE.RingBufferGeometry( 0.02, 0.04, 32 ).translate( 0, 0, - 1 );
+            material = new THREE.MeshBasicMaterial( { opacity: 0.5, transparent: true } );
+            controller.add( new THREE.Mesh( geometry, material ) )
 
     }
 
-    return controllers
 }
 
 function handleController(controller){
     if(controller.userData.selectPressed){
-        controller.children[0].scale.z = 10;
+        // controller.children[0].scale.z = 10;
         
         workingMatrix.identity().extractRotation(controller.matrixWorld);
 
@@ -199,11 +213,11 @@ function handleController(controller){
         const intersects = raycaster.intersectObjects(room.children);
 
         if(intersects.length>0){
-            intersects[0].object.add(hightlight);
-            hightlight.visible = true;
-            controller.children[0].scale.z = intersects[0].distance;
+            intersects[0].object.add(highlight);
+            highlight.visible = true;
+            // controller.children[0].scale.z = intersects[0].distance;
         }else{
-            hightlight.visible = false;
+            highlight.visible = false;
         }
 
     }
@@ -232,14 +246,17 @@ function animate() {
 
 function render() {
     
+    /*
     if (vrControllers ){
         // const self = this;
         vrControllers.forEach( ( controller) => { 
             handleController( controller ) 
         });
     }
-    
+    */
 
+    if(controller)handleController(controller);
+    
     renderer.render( scene, camera );
 
 }
