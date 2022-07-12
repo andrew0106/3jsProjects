@@ -177,18 +177,18 @@ function buildController(data, controller){
 
         case 'tracked-pointer':
             //code here
-            let loader = new GLTFLoader().setPath('./staticAsset');
+            let loader = new GLTFLoader().setPath('./staticAsset/');
 
             loader.load('flash-light.glb',
-            ( gltf ) => {
-                controller.add(gltf.scene);
-            },
-            null,
-            (error) => {
-                console.error('An error');
-            }
-            );
-            
+                ( gltf ) => {
+                    controller.add(gltf.scene);
+                },
+                null,
+                (error) => {
+                        console.error('An error');
+                }
+            )
+
             break;
 
         case 'gaze':
